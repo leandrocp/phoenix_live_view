@@ -1,7 +1,7 @@
 defmodule Phoenix.LiveView.FlashTest do
   use ExUnit.Case, async: true
 
-  alias Phoenix.LiveView.Utils
+  alias Phoenix.LiveView.{Socket, Utils}
   alias Phoenix.LiveViewTest.Endpoint
 
   test "sign" do
@@ -16,5 +16,31 @@ defmodule Phoenix.LiveView.FlashTest do
   test "verify with invalid flash token" do
     assert Utils.verify_flash(Endpoint, "bad") == %{}
     assert Utils.verify_flash(Endpoint, nil) == %{}
+  end
+
+  test "clear_flash" do
+    socket =
+      %Socket{assigns: %{flash: %{}}}
+      |> Utils.put_flash(:info, "msg")
+
+    assert socket
+           |> Utils.clear_flash()
+           |> Utils.get_flash() == %{}
+
+    assert socket
+           |> Utils.clear_flash(:info)
+           |> Utils.get_flash() == %{}
+
+    assert socket
+           |> Utils.clear_flash("info")
+           |> Utils.get_flash() == %{}
+
+    assert socket
+           |> Utils.clear_flash("error")
+           |> Utils.get_flash() == %{"info" => "msg"}
+
+    assert socket
+           |> Utils.clear_flash(nil)
+           |> Utils.get_flash() == %{"info" => "msg"}
   end
 end
