@@ -143,6 +143,7 @@ defmodule Phoenix.LiveView.Utils do
   Clears the key from the flash.
   """
   def clear_flash(%Socket{} = socket, key) do
+    key = flash_key(key)
     new_flash = Map.delete(socket.assigns.flash, key)
     assign(socket, :flash, new_flash)
   end
@@ -349,7 +350,7 @@ defmodule Phoenix.LiveView.Utils do
   end
 
   defp render_assigns(socket) do
-    Map.put(socket.assigns, :socket, socket)
+    Map.put(socket.assigns, :socket, %Socket{socket | assigns: %Socket.AssignsNotInSocket{}})
   end
 
   defp layout(socket, view) do
