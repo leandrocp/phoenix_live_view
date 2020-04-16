@@ -20,6 +20,18 @@ defmodule Phoenix.LiveView.ComponentTest do
              "<div id=\"chris\" phx-target=\"#chris\" phx-click=\"transform\">"
   end
 
+  test "support calling render with a path and target on component element wrapper", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/components")
+    html = render_submit([view, "#rename-target-jose"], "rename", %{"name" => "jose-valim"})
+    assert html =~ "jose-valim"
+  end
+
+  test "support calling render with a path", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/components")
+    html = render_submit([view, "#rename-jose"], "rename", %{"name" => "jose-valim"})
+    assert html =~ "jose-valim"
+  end
+
   test "renders successfully when connected", %{conn: conn} do
     {:ok, view, _html} = live(conn, "/components")
 

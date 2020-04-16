@@ -56,6 +56,85 @@ defmodule Phoenix.LiveViewTest.StatefulComponent do
   end
 end
 
+defmodule Phoenix.LiveViewTest.RenameComponent do
+  use Phoenix.LiveComponent
+
+  def mount(socket) do
+    {:ok, assign(socket, name: "unknown", dup_name: nil)}
+  end
+
+  def update(assigns, socket) do
+    if from = assigns[:from] do
+      send(from, {:updated, assigns})
+    end
+
+    {:ok, assign(socket, assigns)}
+  end
+
+  def preload([assigns | _] = lists_of_assigns) do
+    if from = assigns[:from] do
+      send(from, {:preload, lists_of_assigns})
+    end
+
+    lists_of_assigns
+  end
+
+  def render(assigns) do
+    ~L"""
+    <div id="<%= @id %>">
+      <p>name: <%= @name %></p>
+      <form action="#" method="POST" phx-submit="rename" phx-target="<%= @myself %>">
+        <input type="text" name="name">
+      </form>
+    </div>
+    """
+  end
+
+  def handle_event("rename", %{"name" => name}, socket) do
+    {:noreply, assign(socket, name: name)}
+  end
+end
+
+defmodule Phoenix.LiveViewTest.RenameWithDivTargetComponent do
+  use Phoenix.LiveComponent
+
+  def mount(socket) do
+    {:ok, assign(socket, name: "unknown", dup_name: nil)}
+  end
+
+  def update(assigns, socket) do
+    if from = assigns[:from] do
+      send(from, {:updated, assigns})
+    end
+
+    {:ok, assign(socket, assigns)}
+  end
+
+  def preload([assigns | _] = lists_of_assigns) do
+    if from = assigns[:from] do
+      send(from, {:preload, lists_of_assigns})
+    end
+
+    lists_of_assigns
+  end
+
+  def render(assigns) do
+    ~L"""
+    <div id="<%= @id %>" phx-target="#<%= @id %>">
+      <p>name: <%= @name %></p>
+      <form action="#" method="POST" phx-submit="rename" phx-target="<%= @myself %>">
+        <input type="text" name="name">
+      </form>
+    </div>
+    """
+  end
+
+  def handle_event("rename", %{"name" => name}, socket) do
+    {:noreply, assign(socket, name: name)}
+  end
+end
+
+
 defmodule Phoenix.LiveViewTest.WithComponentLive do
   use Phoenix.LiveView
 
@@ -64,6 +143,8 @@ defmodule Phoenix.LiveViewTest.WithComponentLive do
     Redirect: <%= @redirect %>
     <%= for name <- @names do %>
       <%= live_component @socket, Phoenix.LiveViewTest.StatefulComponent, id: name, name: name, from: @from %>
+      <%= live_component @socket, Phoenix.LiveViewTest.RenameComponent, id: "rename-" <> name, name: name, from: @from %>
+      <%= live_component @socket, Phoenix.LiveViewTest.RenameWithDivTargetComponent, id: "rename-target-" <> name, name: name, from: @from %>
     <% end %>
     """
   end
